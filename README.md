@@ -1,7 +1,7 @@
-<img width="124" height="124" alt="image" src="https://github.com/user-attachments/assets/d5570724-2573-4cc5-b226-e2878d7a4a1d" />
+<img width="224" height="224" alt="image" src="https://github.com/user-attachments/assets/d5570724-2573-4cc5-b226-e2878d7a4a1d" />
 
 
-# FinalYEarPRoject-Elevaid
+# FinalYearProject-Elevaid
 This is my final year project application for Term 2510 in Multimedia University.
 
 **Abstract**
