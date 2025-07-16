@@ -1,6 +1,8 @@
 let selectedFloors = [];
 let currentDirection = 'down';
 let okuFloor = null;
+let selectedOKUType = null; // ADD THIS LINE
+let detectionConfirmed = false; // ADD THIS LINE
 let traditionalQueue = [];
 let elevaidQueue = [];
 let traditionalStep = 0;
@@ -53,6 +55,19 @@ function createFloorButtons() {
 
 // Add this function to handle video upload
 function uploadVideo(file) {
+    
+    // ADD THIS CHECK AT THE BEGINNING
+    if (window.selectedOKUType !== 'wheelchair') {
+        // Handle elderly case - skip AI detection
+        const uploadBox = document.querySelector('.upload-box');
+        uploadBox.innerHTML = `
+            <p style="color: green;">✅ Elderly person confirmed!</p>
+            <p>No wheelchair detection needed for elderly persons</p>
+        `;
+        detectionConfirmed = true; // ADD THIS LINE
+        updateSelectedCalls(); // ADD THIS LINE
+        return; // Exit early, no API call needed
+    }
 
     // Show loading state
     const uploadBox = document.querySelector('.upload-box');
@@ -62,7 +77,8 @@ function uploadVideo(file) {
 
     const formData = new FormData();
     formData.append('video', file);
-    
+    formData.append('oku_type', window.selectedOKUType); // ADD THIS LINE
+
     fetch('/upload', {
         method: 'POST',
         body: formData
@@ -70,7 +86,10 @@ function uploadVideo(file) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            if (data.detection.detected) {
+            if (data.detectionStatus === 'positive') {
+                // Update detection status
+                detectionConfirmed = true; // ADD THIS LINE
+
                 // Update OKU detection message
                 document.getElementById('okuMessage').textContent = 
                     `🤖 AI Detection: Wheelchair detected at floor ${okuFloor} (${(data.detection.confidence * 100).toFixed(1)}% confidence)`;
@@ -84,6 +103,7 @@ function uploadVideo(file) {
             }
             else {
                 // No wheelchair detected
+                detectionConfirmed = false; // ADD THIS LINE
                 uploadBox.innerHTML = `
                     <p style="color: orange;">⚠️ No wheelchair detected in video</p>
                     <p>Please try uploading a different video or manually assign OKU person</p>
@@ -92,11 +112,13 @@ function uploadVideo(file) {
             }
 
         } else {
+            detectionConfirmed = false; // ADD THIS LINE
             uploadBox.innerHTML = `
                 <p style="color: red;">❌ Upload failed: ${data.error}</p>
                 <button onclick="resetVideoUpload()" class="select-video-btn">Try Again</button>
             `;
         }
+        updateSelectedCalls(); // ADD THIS LINE
     })
     .catch(error => {
         console.error('Error:', error);
@@ -104,6 +126,7 @@ function uploadVideo(file) {
             <p style="color: red;">❌ Upload failed: Network error</p>
             <button onclick="resetVideoUpload()" class="select-video-btn">Try Again</button>
         `;
+        updateSelectedCalls(); // ADD THIS LINE
     });
 }
 
@@ -263,12 +286,17 @@ function assignOKUFloor(floor) {
     
     // Assign new OKU floor
     okuFloor = floor;
+    detectionConfirmed = false; // ADD THIS LINE - Reset detection status
     const button = document.getElementById(`btn-${floor}`);
     button.classList.add('oku');
     
     // Show OKU detection message (will be updated by AI if video uploaded)
     document.getElementById('okuMessage').textContent = `OKU person assigned to floor ${okuFloor} - Upload video for AI verification`;
     document.getElementById('okuDetection').style.display = 'block';
+
+      // ADD THIS: Show the View Results button
+    document.getElementById('viewResultsBtn').style.display = 'inline-block';
+    updateSelectedCalls(); // ADD THIS LINE
 }
 
 function removeOKUAssignment() {
@@ -278,11 +306,24 @@ function removeOKUAssignment() {
             button.classList.remove('oku');
         }
         okuFloor = null;
+        detectionConfirmed = false; // ADD THIS LINE
         document.getElementById('okuDetection').style.display = 'none';
         // Hide video upload section and reset selections
         document.getElementById('videoUploadSection').style.display = 'none';
         document.getElementById('okuTypeSelection').style.display = 'block';
         document.getElementById('videoUploadContent').style.display = 'none';
+
+        // ADD THIS: Hide the View Results button and timing results
+        document.getElementById('viewResultsBtn').style.display = 'none';
+        document.getElementById('timingResults').style.display = 'none';
+
+        updateSelectedCalls(); // ADD THIS LINE
+    }
+}
+
+function viewResults() {
+    if (okuFloor !== null) {
+        calculateOKUJourneyTime();
     }
 }
 
@@ -313,7 +354,8 @@ function updateSelectedCalls() {
         }
         
         callsElement.textContent = callText;
-        document.getElementById('startBtn').disabled = false;
+        // MODIFY THIS CONDITION - Only enable if detection is confirmed
+        document.getElementById('startBtn').disabled = !(okuFloor !== null && detectionConfirmed);
     }
 }
 
@@ -371,9 +413,9 @@ function generateQueues() {
     displayQueues();
 
     // Add this at the end of the existing generateQueues function
-    if (okuFloor !== null) {
+    /*if (okuFloor !== null) {
         calculateOKUJourneyTime();
-    }
+    }*/
 }
 
 function displayQueues() {
@@ -687,6 +729,10 @@ function selectOKUType(type) {
     document.getElementById('okuTypeSelection').style.display = 'none';
     document.getElementById('videoUploadContent').style.display = 'block';
     
+    // UPDATE THIS PART - Store the selected OKU type
+    // Add a global variable to track OKU type
+    window.selectedOKUType = type; // ADD THIS LINE
+
     // Update OKU message with selected type
     const emoji = type === 'wheelchair' ? '🦽' : '👴';
     const typeName = type === 'wheelchair' ? 'Wheelchair user' : 'Elderly person';
@@ -698,6 +744,7 @@ function resetSimulation() {
     
     selectedFloors = [];
     okuFloor = null;
+    detectionConfirmed = false; // ADD THIS LINE
     traditionalQueue = [];
     elevaidQueue = [];
     traditionalStep = 0;
@@ -727,6 +774,9 @@ function resetSimulation() {
 
     // Add this line at the end of the existing resetSimulation function
     document.getElementById('timingResults').style.display = 'none';
+
+    // Add this line in the resetSimulation function:
+    document.getElementById('viewResultsBtn').style.display = 'none';
 }
 
 // Listen for direction changes
