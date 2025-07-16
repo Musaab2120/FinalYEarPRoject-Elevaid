@@ -29,6 +29,21 @@ def upload_video():
     if 'video' not in request.files:
         return jsonify({'success': False, 'error': 'No video file provided'})
     
+    # ADD THIS TO GET OKU TYPE
+    oku_type = request.form.get('oku_type', 'wheelchair')
+    
+    # ADD THIS CHECK
+    if oku_type != 'wheelchair':
+        return jsonify({
+            'success': True,
+            'detection': {
+                'type': 'elderly',
+                'confidence': 1.0,  # Manual assignment
+                'detected': True
+            },
+            'message': 'Elderly person confirmed without AI detection'
+        })
+    
     file = request.files['video']
     if file.filename == '':
         return jsonify({'success': False, 'error': 'No file selected'})
@@ -51,6 +66,7 @@ def upload_video():
                 'confidence': result['confidence'],
                 'detected': result['detected']
             },
+            'detectionStatus': 'positive' if result['detected'] else 'negative',  # ADD THIS LINE
             'details': {
                 'frame_count': result['frame_count'],
                 'detection_frames': len(result['detection_frames'])
