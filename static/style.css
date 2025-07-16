@@ -18,6 +18,50 @@ body {
     margin-bottom: 30px;
 }
 
+/* Logo Styles */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logo {
+    max-height: 120px;
+    max-width: 100%;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #666;
+    margin: 10px 0 0 0;
+    line-height: 1.4;
+}
+
+/* Responsive logo adjustments */
+@media (max-width: 768px) {
+    .logo {
+        max-height: 80px;
+    }
+    
+    .subtitle {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        max-height: 60px;
+    }
+    
+    .subtitle {
+        font-size: 14px;
+    }
+}
+
 .comparison-container {
     display: flex;
     gap: 20px;
@@ -651,4 +695,28 @@ button:disabled {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ffeaa7;
+}
+
+.view-results-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.view-results-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.view-results-btn:active {
+    transform: translateY(0);
 }
